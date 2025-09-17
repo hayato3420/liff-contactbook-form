@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>先生用連絡帳</title>
+<style>
+body { font-family: system-ui; margin: 0; padding: 16px; background: #f6f7fb; }
+h1 { text-align: center; }
+.card { background: #fff; padding: 16px; border-radius: 12px; margin-bottom: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.05); }
+.card strong { display: block; font-size: 16px; margin-bottom: 4px; }
+.card p { margin: 4px 0; font-size: 14px; }
+textarea { width: 100%; height: 60px; margin-top: 8px; border-radius: 8px; padding: 8px; border: 1px solid #ccc; resize: vertical; }
+button { margin-top: 8px; padding: 8px 12px; border: none; border-radius: 8px; background: #06C755; color: #fff; cursor: pointer; }
+button:disabled { background: #ccc; cursor: not-allowed; }
+</style>
+</head>
+<body>
+<h1>今日の連絡帳（最新）</h1>
+<div id="reportList"></div>
+
+<script>
+const GAS_URL = "https://script.google.com/macros/s/AKfycbyS7k1Rsxq5_ZUG4w3RYNcBONPfoP1UCREf6wqXq_0jn5bjfqXkyGjRAmqxGryLwB_B/exec";
+
+const reportList = document.getElementById('reportList');
+
+async function init() {
+  try {
+    // 最新連絡帳取得
+    const res = await fetch(GAS_URL);
+    const reports = await res.json();
+
+    if (reports.length === 0) {
+      reportList.innerHTML = "<p>現在データはありません</p>";
+      return;
+    }
+
+    reports.forEach(r => {
+      const div = document.createElement('div');
+      div.className = 'card';
+      div.innerHTML = `
+        <strong>${r[1]}</strong> （体温: ${r[2]}℃ / 体調: ${r[3]}） 
+        <p>${r[4]}</p>
+        ${r[6] ? `<p style="color:green;font-size:13px;">先生返信済: ${r[6]}</p>` : ''}
+        <textarea placeholder="返信を入力"></textarea>
+        <input type="text" placeholder="LINEユーザーID（任意）" style="margin-top:4px;padding:6px;border:1px solid #ccc;border-radius:6px;width:100%;" />
+        <button>送信</button>
+      `;
+
+      const btn = div.querySelector('button');
+      const textarea = div.querySelector('textarea');
+      const userIdInput = div.querySelector('input');
+
+      btn.addEventListener('click', async () => {
+        if (!textarea.value.trim()) return alert('返信を入力してください');
+
+        const payload = {
+          row: r[0],
+          message: textarea.value.trim(),
+          userId: userIdInput.value.trim()
+        };
+
+        try {
+          btn.disabled = true;
+          const res = await fetch(GAS_URL, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+          });
+          const data = await res.json();
+          if (data.status === 'success') {
+            alert('返信を送信しました');
+            textarea.value = '';
+            userIdInput.value = '';
+          } else {
+            alert('送信に失敗しました: ' + data.message);
+          }
+        } catch (err) {
+          console.error(err);
+          alert('通信エラーが発生しました');
+        } finally {
+          btn.disabled = false;
+        }
+      });
+
+      reportList.appendChild(div);
+    });
+
+  } catch (err) {
+    console.error(err);
+    reportList.innerHTML = '<p>データの取得に失敗しました。GAS URL を確認してください。</p>';
+  }
+}
+
+// 初期化
+init();
+</script>
+</body>
+</html>
