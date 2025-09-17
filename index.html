@@ -88,10 +88,8 @@
   </div>
 
   <script>
-    // ====== 置き換えてください ======
-    const LIFF_ID = "2008084904-LDljg5dl"; // 例: 2000000000-xxxxxxx
-    const GAS_URL = "https://script.google.com/macros/s/AKfycbzW4gO5P415tEijklp_58UU2P3F5dmeFeO-NONpdBzSeWeQnpU8Jb7gM_hixRBWW1z2/exec"; // doPostを公開したURL
-    // =================================
+    const LIFF_ID = "2008084904-LDljg5dl"; 
+    const GAS_URL = "https://script.google.com/macros/s/AKfycbyS7k1Rsxq5_ZUG4w3RYNcBONPfoP1UCREf6wqXq_0jn5bjfqXkyGjRAmqxGryLwB_B/exec"; 
 
     const els = {
       form: document.getElementById('reportForm'),
@@ -118,7 +116,6 @@
       els.submitBtn.textContent = loading ? '送信中…' : '送信する';
     }
 
-    // === LIFF 初期化 ===
     (async () => {
       try {
         els.loginMeta.textContent = 'LIFF状態: 初期化中…';
@@ -127,14 +124,13 @@
         if (!liff.isLoggedIn()) {
           els.loginMeta.textContent = 'LIFF状態: 未ログイン → ログインへ遷移';
           liff.login();
-          return; // ログイン後に再読込される
+          return; 
         }
 
         els.loginMeta.textContent = 'LIFF状態: ログイン済み';
         const profile = await liff.getProfile();
         els.userId.value = profile.userId || '';
 
-        // 参考: LINEの表示名をヒントに入れる（園児名の入力補助）
         if (!els.name.value) {
           els.name.placeholder = `例）${profile.displayName || 'たろう'}`;
         }
@@ -145,12 +141,10 @@
       }
     })();
 
-    // === 送信処理 ===
     els.form.addEventListener('submit', async (e) => {
       e.preventDefault();
       clearAlert(); clearOk();
 
-      // 入力バリデーション
       const tempVal = parseFloat(els.temp.value);
       if (Number.isNaN(tempVal) || tempVal < 34 || tempVal > 41) {
         setAlert('体温は34.0〜41.0の範囲で入力してください。');
@@ -173,7 +167,6 @@
         userId: els.userId.value,
       };
 
-      // 送信時間（端末側）をログとして同送したい場合
       els.clientTime.value = new Date().toISOString();
       payload.clientTime = els.clientTime.value;
 
@@ -185,7 +178,6 @@
           body: JSON.stringify(payload),
         });
 
-        // GAS側でCORSレスポンスが出ない場合もあるためbest-effortで処理
         let ok = res.ok;
         try {
           const data = await res.json();
@@ -197,7 +189,6 @@
         setOk('送信しました。ご入力ありがとうございます。');
         els.form.reset();
 
-        // LIFF内ならウィンドウを閉じる（好みに応じてコメントアウト）
         setTimeout(() => { if (liff && liff.isInClient()) liff.closeWindow(); }, 800);
       } catch (err) {
         console.error(err);
@@ -207,7 +198,6 @@
       }
     });
 
-    // 閉じるボタン
     els.closeBtn.addEventListener('click', () => {
       if (liff && liff.isInClient()) {
         liff.closeWindow();
