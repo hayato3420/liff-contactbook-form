@@ -109,13 +109,24 @@
             const content = document.getElementById('contentInput').value;
             const userId = document.getElementById('userIdInput').value; 
 
-            // 必須入力チェック (IDもチェック)
-            if (!name || !temp || !condition || !content || !userId) {
-                showAlert("すべての項目を入力してください。または、LINE IDの取得ができませんでした。再度お試しください。");
+            // ★★★ 必須入力チェック（分離版） ★★★
+            // A. フォームの入力項目チェック
+            if (!name || !temp || !condition || !content) {
+                showAlert("すべての必須項目を入力してください。");
                 submitBtn.disabled = false;
                 submitBtn.textContent = '送信する';
                 return;
             }
+
+            // B. LINE IDの取得チェック
+            if (!userId) {
+                showAlert("LINE IDの取得に失敗しました。LINE Developersの設定（Scope）を確認し、再度お試しください。");
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+                return;
+            }
+            // ★★★ チェックここまで ★★★
+            
 
             // 2. 送信するデータをJSON形式で準備
             const payload = {
