@@ -17,7 +17,7 @@ body {
 }
 h1 { 
     font-size: 20px; 
-    margin: 0 0 16px; 
+   text-align: center;
 }
 p.desc { 
     margin: 0 0 16px; 
@@ -26,11 +26,9 @@ p.desc {
 }
 form { 
     display: grid; 
-    gap: 14px; 
 }
 .row { 
     display: grid; 
-    gap: 8px; 
 }
 label { 
     font-size: 13px; 
