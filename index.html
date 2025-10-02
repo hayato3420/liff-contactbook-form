@@ -11,7 +11,7 @@
     // LIFF初期化とID取得
     async function initializeLiff() {
         try {
-            await liff.init({ liffId: 'YOUR_LIFF_ID' }); // ★★★ あなたのLIFF IDに置き換え ★★★
+            await liff.init({ liffId: '2008084904-LDljg5dl' }); // ★★★ あなたのLIFF IDに置き換え ★★★
             if (liff.isLoggedIn()) {
                 const profile = await liff.getProfile();
                 document.getElementById('userIdInput').value = profile.userId;
@@ -39,7 +39,7 @@
 
   <script>
     // ====== あなたのGASのURLに置き換える ======
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbqUSYZ35IXlF8zcIW9P3s9TleI6F1bRtIZ5FWrnW7qq8dDkWug5ljiR8y06eGwfyN/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQE9drzU6bhb5UbtybsqBAZBFMnDciI3lO8CxjgfVt1lFNVADeaRMYEXQmtomnuz58/exec";
     // =========================================
 
     const form = document.getElementById('reportForm');
