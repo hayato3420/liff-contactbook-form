@@ -1,65 +1,70 @@
 <!DOCTYPE html>
 <html>
 <head>
-  <title>保護者向け連絡帳</title>
+  <title>保護者向け連絡帳</title>
 </head>
 <body>
 
-  <h1>連絡データ入力フォーム</h1>
-  
-  <label for="nameInput">お子様の名前:</label><br>
-  <input type="text" id="nameInput" required><br><br>
-  
-  <label for="contentInput">連絡したい内容:</label><br>
-  <textarea id="contentInput" required></textarea><br><br>
-  
-  <button onclick="sendData()">送信</button>
-  
-  <p id="statusMessage"></p>
+  <h1>連絡データ入力フォーム</h1>
+  
+  <label for="nameInput">お子様の名前:</label><br>
+  <input type="text" id="nameInput" required><br><br>
 
-  <script>
-    // ★★★ Step 3でコピーした「ウェブアプリのURL」に置き換えてください！ ★★★
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbqUSYZ35IXlF8zcIW9P3s9TleI6F1bRtIZ5FWrnW7qq8dDkWug5ljiR8y06eGwfyN/exec";
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    <label for="tempInput">体温（℃）:</label><br>
+  <input type="number" id="tempInput" step="0.1" min="34" max="41" placeholder="例: 36.8" required><br><br>
+    
+  <label for="contentInput">連絡したい内容:</label><br>
+  <textarea id="contentInput" required></textarea><br><br>
+  
+  <button onclick="sendData()">送信</button>
+  
+  <p id="statusMessage"></p>
 
-    function sendData() {
-      const name = document.getElementById('nameInput').value;
-      const content = document.getElementById('contentInput').value;
-      const statusMessage = document.getElementById('statusMessage');
+  <script>
+    // ★★★ Step 3でコピーした「ウェブアプリのURL」に置き換えてください！ ★★★
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzrdt51R3cwCa8AsFjbjpcFTGRK0wtN-BKuU8uRSWpwKdJ-3rLUR3Tfnc9EkQJCgg4v/exec";
+    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
-      if (!name || !content) {
-        statusMessage.textContent = "名前と内容を両方入力してください。";
-        return;
-      }
-      
-      // 1. 送信するデータをJSON形式で準備
-      const payload = {
-        name: name,
-        content: content
-      };
+    function sendData() {
+      const name = document.getElementById('nameInput').value;
+      const temp = document.getElementById('tempInput').value; // ★★★ 変数追加 ★★★
+      const content = document.getElementById('contentInput').value;
+      const statusMessage = document.getElementById('statusMessage');
 
-      // 2. GASのdoPost関数にデータを送信（Fetch APIを使用）
-      fetch(GAS_WEB_APP_URL, {
-        method: 'POST',                  // POSTメソッドで送信
-        mode: 'no-cors',                 // GASへの送信に必要な設定
-        headers: {
-          'Content-Type': 'application/json' // JSON形式でデータを送ることを宣言
-        },
-        body: JSON.stringify(payload)    // JSON文字列に変換して送信
-      })
-      .then(response => {
-        // GASからの応答は無視してもデータはスプレッドシートに書き込まれています
-        statusMessage.textContent = "連絡を送信しました！スプレッドシートに反映されます。";
-        // フォームをクリア
-        document.getElementById('nameInput').value = '';
-        document.getElementById('contentInput').value = '';
-      })
-      .catch(error => {
-        console.error('送信エラー:', error);
-        statusMessage.textContent = "送信中にエラーが発生しました。";
-      });
-    }
-  </script>
+      if (!name || !temp || !content) { // ★★★ チェック項目追加 ★★★
+        statusMessage.textContent = "名前、体温、内容をすべて入力してください。";
+        return;
+      }
+      
+      // 1. 送信するデータをJSON形式で準備
+      const payload = {
+        name: name,
+        temp: temp, // ★★★ payloadに追加 ★★★
+        content: content
+      };
+
+      // 2. GASのdoPost関数にデータを送信（Fetch APIを使用）
+      fetch(GAS_WEB_APP_URL, {
+        method: 'POST',
+        mode: 'no-cors',
+        headers: {
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+      })
+      .then(response => {
+        statusMessage.textContent = "連絡を送信しました！スプレッドシートに反映されます。";
+        // フォームをクリア
+        document.getElementById('nameInput').value = '';
+        document.getElementById('tempInput').value = ''; // ★★★ クリア項目追加 ★★★
+        document.getElementById('contentInput').value = '';
+      })
+      .catch(error => {
+        console.error('送信エラー:', error);
+        statusMessage.textContent = "送信中にエラーが発生しました。";
+      });
+    }
+  </script>
 
 </body>
 </html>
