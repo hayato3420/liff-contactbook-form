@@ -1,105 +1,150 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>連絡帳フォーム</title>
-  <link rel="stylesheet" href="style.css">
-  
-    <script src="https://static.line-scdn.net/liff/sdk/2.2.0/liff.js"></script>
-  <script>
-    // LIFF初期化とID取得
-    async function initializeLiff() {
-        try {
-            await liff.init({ liffId: '2008084904-LDljg5dl' }); // ★★★ あなたのLIFF IDに置き換え ★★★
-            if (liff.isLoggedIn()) {
-                const profile = await liff.getProfile();
-                document.getElementById('userIdInput').value = profile.userId;
-            } else {
-                // ログインしていない場合はログインを促す
-                liff.login();
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>連絡帳フォーム</title>
+    
+    <link rel="stylesheet" href="style.css">
+    
+    <script src="https://static.line-scdn.net/liff/sdk/2.2.0/liff.js"></script>
+    
+    <script>
+        // LIFF初期化とID取得
+        async function initializeLiff() {
+            try {
+                // ★★★ ここをあなたのLIFF IDに置き換えてください！ ★★★
+                await liff.init({ liffId: '2008084904-LDljg5dl' }); 
+                
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    // 取得したユーザーIDを隠しフィールドにセット
+                    document.getElementById('userIdInput').value = profile.userId;
+                } else {
+                    // ログインしていない場合はログインを促す
+                    liff.login();
+                }
+            } catch (err) {
+                console.error('LIFF初期化エラー:', err);
             }
-        } catch (err) {
-            console.error('LIFF初期化エラー:', err);
-            // エラー時でもフォームは表示
         }
-    }
-    initializeLiff();
-  </script>
-  </head>
+        initializeLiff();
+    </script>
+</head>
 <body>
-  <div class="wrap">
-        <form id="reportForm">
-                
-                <input type="hidden" id="userIdInput" name="userId" value="" />
-                
-        <button id="submitBtn" type="submit">送信する</button>
-    </form>
-  </div>
+    <div class="wrap">
+        <div class="card">
+            <h1>連絡帳フォーム</h1>
+            <p class="desc">朝の体調や連絡事項を入力して送信してください。</p>
 
-  <script>
-    // ====== あなたのGASのURLに置き換える ======
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQE9drzU6bhb5UbtybsqBAZBFMnDciI3lO8CxjgfVt1lFNVADeaRMYEXQmtomnuz58/exec";
-    // =========================================
+            <div id="alert" class="err"></div>
+            <div id="ok" class="ok"></div>
 
-    const form = document.getElementById('reportForm');
-    const alertBox = document.getElementById('alert');
-    const okBox = document.getElementById('ok');
-    const submitBtn = document.getElementById('submitBtn');
+            <form id="reportForm">
+                <div class="row">
+                    <label for="nameInput">お子さまの名前</label>
+                    <input type="text" id="nameInput" required placeholder="例）たろう" />
+                </div>
 
-    function showAlert(msg){ /* ... 省略 ... */ }
-    function showOk(msg){ /* ... 省略 ... */ }
+                <div class="row">
+                    <label for="tempInput">体温（℃）</label>
+                    <input type="number" id="tempInput" step="0.1" min="34" max="41" placeholder="例: 36.8" required />
+                </div>
+                
+                <div class="row">
+                    <label for="conditionInput">体調</label>
+                    <select id="conditionInput" required>
+                        <option value="">選択してください</option>
+                        <option>元気</option>
+                        <option>少しだるい</option>
+                        <option>咳・鼻水あり</option>
+                        <option>発熱あり</option>
+                        <option>その他</option>
+                    </select>
+                </div>
+                
+                <div class="row">
+                    <label for="contentInput">連絡したい内容</label>
+                    <textarea id="contentInput" required placeholder="例）薬を持たせました。お迎えは17:30予定です。"></textarea>
+                </div>
+                
+                <input type="hidden" id="userIdInput" name="userId" value="" />
+                
+                <button id="submitBtn" type="submit">送信する</button>
+            </form>
+        </div>
+    </div>
 
-    form.addEventListener('submit', async (e)=>{
-      e.preventDefault();
-      showAlert('');
-      submitBtn.disabled = true;
-      submitBtn.textContent = '送信中…';
+    <script>
+        // ★★★ ここをあなたのGASのURLに置き換えてください！ ★★★
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzQE9drzU6bhb5UbtybsqBAZBFMnDciI3lO8CxjgfVt1lFNVADeaRMYEXQmtomnuz58/exec";
+        // =========================================
 
-      // 1. 入力値の取得
-      const name = document.getElementById('nameInput').value;
-      const temp = document.getElementById('tempInput').value;
-      const condition = document.getElementById('conditionInput').value;
-      const content = document.getElementById('contentInput').value;
-      const userId = document.getElementById('userIdInput').value; // ★★★ IDを取得 ★★★
+        const form = document.getElementById('reportForm');
+        const alertBox = document.getElementById('alert');
+        const okBox = document.getElementById('ok');
+        const submitBtn = document.getElementById('submitBtn');
 
-      // 必須入力チェック (IDが取得できていない場合はエラー)
-      if (!name || !temp || !condition || !content || !userId) {
-          showAlert("すべての項目を入力してください。または、LINE IDの取得ができませんでした。再度お試しください。");
-          submitBtn.disabled = false;
-          submitBtn.textContent = '送信する';
-        return;
-      }
+        function showAlert(msg){ 
+            alertBox.textContent = msg;
+            alertBox.style.display = msg ? 'block' : 'none';
+            okBox.style.display = 'none';
+        }
+        function showOk(msg){ 
+            okBox.textContent = msg;
+            okBox.style.display = 'block';
+            alertBox.style.display = 'none';
+        }
 
-      // 2. 送信するデータをJSON形式で準備
-      const payload = {
-        name: name,
-        temp: temp,
-        condition: condition,
-        content: content,
-        userId: userId // ★★★ payloadにIDを含める ★★★
-      };
+        form.addEventListener('submit', async (e)=>{
+            e.preventDefault();
+            showAlert('');
+            submitBtn.disabled = true;
+            submitBtn.textContent = '送信中…';
 
-      // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
-      // ... 省略 ...
-      // ... 既存の fetch/try/catch ロジックをそのまま使用 ...
-      // ... 
-      try {
-        const res = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        showOk("送信しました。ご入力ありがとうございます。");
-        document.getElementById('reportForm').reset();
-      } catch(err){
-        console.error('送信エラー:', err);
-        showAlert('送信に失敗しました。URLや通信環境をご確認ください。');
-      } finally {
-        submitBtn.disabled = false;
-        submitBtn.textContent = '送信する';
-      }
-    });
-  </script>
+            // 1. 入力値の取得
+            const name = document.getElementById('nameInput').value;
+            const temp = document.getElementById('tempInput').value;
+            const condition = document.getElementById('conditionInput').value;
+            const content = document.getElementById('contentInput').value;
+            const userId = document.getElementById('userIdInput').value; 
+
+            // 必須入力チェック (IDもチェック)
+            if (!name || !temp || !condition || !content || !userId) {
+                showAlert("すべての項目を入力してください。または、LINE IDの取得ができませんでした。再度お試しください。");
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+                return;
+            }
+
+            // 2. 送信するデータをJSON形式で準備
+            const payload = {
+                name: name,
+                temp: temp,
+                condition: condition,
+                content: content,
+                userId: userId // ユーザーIDを含めてGASに送信
+            };
+
+            // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
+            try {
+                const res = await fetch(GAS_WEB_APP_URL, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                
+                showOk("送信しました。ご入力ありがとうございます。");
+                document.getElementById('reportForm').reset();
+                
+            } catch(err){
+                console.error('送信エラー:', err);
+                showAlert('送信に失敗しました。URLや通信環境をご確認ください。');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+            }
+        });
+    </script>
 </body>
 </html>
