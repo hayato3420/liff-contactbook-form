@@ -10,8 +10,18 @@
   <label for="nameInput">お子様の名前:</label><br>
   <input type="text" id="nameInput" required><br><br>
 
-    <label for="tempInput">体温（℃）:</label><br>
+  <label for="tempInput">体温（℃）:</label><br>
   <input type="number" id="tempInput" step="0.1" min="34" max="41" placeholder="例: 36.8" required><br><br>
+  
+    <label for="conditionInput">体調:</label><br>
+  <select id="conditionInput" required>
+    <option value="">選択してください</option>
+    <option>元気</option>
+    <option>少しだるい</option>
+    <option>咳・鼻水あり</option>
+    <option>発熱あり</option>
+    <option>その他</option>
+  </select><br><br>
     
   <label for="contentInput">連絡したい内容:</label><br>
   <textarea id="contentInput" required></textarea><br><br>
@@ -22,24 +32,26 @@
 
   <script>
     // ★★★ Step 3でコピーした「ウェブアプリのURL」に置き換えてください！ ★★★
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzrdt51R3cwCa8AsFjbjpcFTGRK0wtN-BKuU8uRSWpwKdJ-3rLUR3Tfnc9EkQJCgg4v/exec";
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwZZ7PYtgeONUJs7MUcBAYIgjsUgVAews896kpftTqqroL2YKi7FHtA0VvB3AJ6hJPY/exec";
     // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
 
     function sendData() {
       const name = document.getElementById('nameInput').value;
-      const temp = document.getElementById('tempInput').value; // ★★★ 変数追加 ★★★
+      const temp = document.getElementById('tempInput').value;
+      const condition = document.getElementById('conditionInput').value; // ★★★ 変数追加 ★★★
       const content = document.getElementById('contentInput').value;
       const statusMessage = document.getElementById('statusMessage');
 
-      if (!name || !temp || !content) { // ★★★ チェック項目追加 ★★★
-        statusMessage.textContent = "名前、体温、内容をすべて入力してください。";
+      if (!name || !temp || !condition || !content) { // ★★★ チェック項目追加 ★★★
+        statusMessage.textContent = "すべての項目を入力してください。";
         return;
       }
       
       // 1. 送信するデータをJSON形式で準備
       const payload = {
         name: name,
-        temp: temp, // ★★★ payloadに追加 ★★★
+        temp: temp,
+        condition: condition, // ★★★ payloadに追加 ★★★
         content: content
       };
 
@@ -56,7 +68,8 @@
         statusMessage.textContent = "連絡を送信しました！スプレッドシートに反映されます。";
         // フォームをクリア
         document.getElementById('nameInput').value = '';
-        document.getElementById('tempInput').value = ''; // ★★★ クリア項目追加 ★★★
+        document.getElementById('tempInput').value = '';
+        document.getElementById('conditionInput').value = ''; // ★★★ クリア項目追加 ★★★
         document.getElementById('contentInput').value = '';
       })
       .catch(error => {
