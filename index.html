@@ -4,8 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>連絡帳フォーム</title>
-    <link rel="stylesheet" href="style.css">
-  </head>
+</head>
 <body>
   <div class="wrap">
     <div class="card">
@@ -48,12 +47,12 @@
     </div>
   </div>
 
- <script>
+  <script>
     // ====== あなたのGASのURLに置き換える ======
-    // このURLが正しいことを再度確認してください
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbxAXYevkwb1wqHc_eORGx9x8VMohq9plagdjvWsKOCgz8Qqlp5O-HJLMv6x-IuG7aQY/exec";
     // =========================================
 
+    // ★★★ フォームの送信処理は、エラーメッセージ表示も行う最新版を使用します ★★★
     const form = document.getElementById('reportForm');
     const alertBox = document.getElementById('alert');
     const okBox = document.getElementById('ok');
@@ -82,14 +81,14 @@
       // 1. 入力値の取得
       const name = document.getElementById('nameInput').value;
       const temp = document.getElementById('tempInput').value;
-      const condition = document.getElementById('conditionInput').value;
+      const condition = document.getElementById('conditionInput').value;
       const content = document.getElementById('contentInput').value;
 
       // 必須入力チェック
       if (!name || !temp || !condition || !content) {
-          showAlert("すべての項目を入力してください。");
-          submitBtn.disabled = false;
-          submitBtn.textContent = '送信する';
+          showAlert("すべての項目を入力してください。");
+          submitBtn.disabled = false;
+          submitBtn.textContent = '送信する';
         return;
       }
 
@@ -97,24 +96,23 @@
       const payload = {
         name: name,
         temp: temp,
-        condition: condition,
+        condition: condition,
         content: content
       };
 
       // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
       try {
-        // GASからの応答を待つ
         const res = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
+          // no-corsは不要な場合もありますが、確実性を高めるため残します
+          mode: 'no-cors', 
           headers: { 'Content-Type': 'application/json' },
-          // mode: 'no-cors' は削除しました。よりモダンな通信方法を使用します。
           body: JSON.stringify(payload)
         });
         
-        // GASがJSONで応答を返さない場合のエラーを避けるため、ここではJSON応答の処理を簡略化します。
-        // データが送れていれば、成功とみなしメッセージを表示してフォームをクリアします。
-        showOk("送信しました。ご入力ありがとうございます。");
-        document.getElementById('reportForm').reset();
+        // 成功とみなし、メッセージを表示してフォームをクリア（no-corsモードのため、res.json()は実行しません）
+        showOk("送信しました。ご入力ありがとうございます。");
+        document.getElementById('reportForm').reset();
         
       } catch(err){
         console.error('送信エラー:', err);
