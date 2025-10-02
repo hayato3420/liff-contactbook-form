@@ -1,83 +1,150 @@
 <!DOCTYPE html>
-<html>
+<html lang="ja">
 <head>
-  <title>保護者向け連絡帳</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>連絡帳フォーム</title>
+  <style>
+    /* ----------------- CSS スタイル ----------------- */
+    body { font-family: system-ui, sans-serif; margin: 0; background: #f6f7fb; color: #222; }
+    .wrap { max-width: 680px; margin: 0 auto; padding: 24px 16px 40px; }
+    .card { background: #fff; border-radius: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.08); padding: 20px; }
+    h1 { font-size: 20px; margin: 0 0 16px; }
+    p.desc { margin: 0 0 16px; color: #555; font-size: 14px; }
+    form { display: grid; gap: 14px; }
+    .row { display: grid; gap: 8px; }
+    label { font-size: 13px; color: #333; }
+    input, select, textarea {
+      width: 95%; font-size: 16px; padding: 12px; border: 1px solid #e1e4ea; border-radius: 12px; outline: none; background: #fafbff;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    button {
+      appearance: none; border: 0; padding: 12px 16px; border-radius: 999px; font-size: 16px; cursor: pointer; transition: .2s;
+      background: #06C755; color: #fff; font-weight: 700;
+    }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .err { background: #fff4f4; color: #b42318; border: 1px solid #fecaca; padding: 10px 12px; border-radius: 10px; font-size: 14px; display: none; }
+    .ok { background: #effaf3; color: #087443; border: 1px solid #bbf7d0; padding: 12px; border-radius: 10px; font-size: 15px; display: none; }
+    /* --------------------------------------------- */
+  </style>
 </head>
 <body>
+  <div class="wrap">
+    <div class="card">
+      <h1>連絡帳フォーム</h1>
+      <p class="desc">朝の体調や連絡事項を入力して送信してください。</p>
 
-  <h1>連絡データ入力フォーム</h1>
-  
-  <label for="nameInput">お子様の名前:</label><br>
-  <input type="text" id="nameInput" required><br><br>
+      <div id="alert" class="err"></div>
+      <div id="ok" class="ok"></div>
 
-  <label for="tempInput">体温（℃）:</label><br>
-  <input type="number" id="tempInput" step="0.1" min="34" max="41" placeholder="例: 36.8" required><br><br>
-  
-    <label for="conditionInput">体調:</label><br>
-  <select id="conditionInput" required>
-    <option value="">選択してください</option>
-    <option>元気</option>
-    <option>少しだるい</option>
-    <option>咳・鼻水あり</option>
-    <option>発熱あり</option>
-    <option>その他</option>
-  </select><br><br>
-    
-  <label for="contentInput">連絡したい内容:</label><br>
-  <textarea id="contentInput" required></textarea><br><br>
-  
-  <button onclick="sendData()">送信</button>
-  
-  <p id="statusMessage"></p>
+      <form id="reportForm">
+        <div class="row">
+          <label for="nameInput">お子さまの名前</label>
+          <input type="text" id="nameInput" required placeholder="例）たろう" />
+        </div>
+
+        <div class="row">
+          <label for="tempInput">体温（℃）</label>
+          <input type="number" id="tempInput" step="0.1" min="34" max="41" placeholder="例: 36.8" required />
+        </div>
+        
+        <div class="row">
+          <label for="conditionInput">体調</label>
+          <select id="conditionInput" required>
+            <option value="">選択してください</option>
+            <option>元気</option>
+            <option>少しだるい</option>
+            <option>咳・鼻水あり</option>
+            <option>発熱あり</option>
+            <option>その他</option>
+          </select>
+        </div>
+        
+        <div class="row">
+          <label for="contentInput">連絡したい内容</label>
+          <textarea id="contentInput" required placeholder="例）薬を持たせました。お迎えは17:30予定です。"></textarea>
+        </div>
+        
+        <button id="submitBtn" type="submit">送信する</button>
+      </form>
+    </div>
+  </div>
 
   <script>
-    // ★★★ Step 3でコピーした「ウェブアプリのURL」に置き換えてください！ ★★★
-    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwZZ7PYtgeONUJs7MUcBAYIgjsUgVAews896kpftTqqroL2YKi7FHtA0VvB3AJ6hJPY/exec";
-    // ★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★★
+    // ====== あなたのGASのURLに置き換える ======
+    const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbqUSYZ35IXlF8zcIW9P3s9TleI6F1bRtIZ5FWrnW7qq8dDkWug5ljiR8y06eGwfyN/exec";
+    // =========================================
 
-    function sendData() {
+    // ★★★ フォームの送信処理は、エラーメッセージ表示も行う最新版を使用します ★★★
+    const form = document.getElementById('reportForm');
+    const alertBox = document.getElementById('alert');
+    const okBox = document.getElementById('ok');
+    const submitBtn = document.getElementById('submitBtn');
+
+    // エラーメッセージ表示
+    function showAlert(msg){
+      alertBox.textContent = msg;
+      alertBox.style.display = msg ? 'block' : 'none';
+      okBox.style.display = 'none';
+    }
+    // 成功メッセージ表示
+    function showOk(msg){
+      okBox.textContent = msg;
+      okBox.style.display = 'block';
+      alertBox.style.display = 'none';
+    }
+
+    // フォーム送信時の処理
+    form.addEventListener('submit', async (e)=>{
+      e.preventDefault();
+      showAlert('');
+      submitBtn.disabled = true;
+      submitBtn.textContent = '送信中…';
+
+      // 1. 入力値の取得
       const name = document.getElementById('nameInput').value;
       const temp = document.getElementById('tempInput').value;
-      const condition = document.getElementById('conditionInput').value; // ★★★ 変数追加 ★★★
+      const condition = document.getElementById('conditionInput').value;
       const content = document.getElementById('contentInput').value;
-      const statusMessage = document.getElementById('statusMessage');
 
-      if (!name || !temp || !condition || !content) { // ★★★ チェック項目追加 ★★★
-        statusMessage.textContent = "すべての項目を入力してください。";
+      // 必須入力チェック
+      if (!name || !temp || !condition || !content) {
+          showAlert("すべての項目を入力してください。");
+          submitBtn.disabled = false;
+          submitBtn.textContent = '送信する';
         return;
       }
-      
-      // 1. 送信するデータをJSON形式で準備
+
+      // 2. 送信するデータをJSON形式で準備
       const payload = {
         name: name,
         temp: temp,
-        condition: condition, // ★★★ payloadに追加 ★★★
+        condition: condition,
         content: content
       };
 
-      // 2. GASのdoPost関数にデータを送信（Fetch APIを使用）
-      fetch(GAS_WEB_APP_URL, {
-        method: 'POST',
-        mode: 'no-cors',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
-      })
-      .then(response => {
-        statusMessage.textContent = "連絡を送信しました！スプレッドシートに反映されます。";
-        // フォームをクリア
-        document.getElementById('nameInput').value = '';
-        document.getElementById('tempInput').value = '';
-        document.getElementById('conditionInput').value = ''; // ★★★ クリア項目追加 ★★★
-        document.getElementById('contentInput').value = '';
-      })
-      .catch(error => {
-        console.error('送信エラー:', error);
-        statusMessage.textContent = "送信中にエラーが発生しました。";
-      });
-    }
+      // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
+      try {
+        const res = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          // no-corsは不要な場合もありますが、確実性を高めるため残します
+          mode: 'no-cors', 
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        
+        // 成功とみなし、メッセージを表示してフォームをクリア（no-corsモードのため、res.json()は実行しません）
+        showOk("送信しました。ご入力ありがとうございます。");
+        document.getElementById('reportForm').reset();
+        
+      } catch(err){
+        console.error('送信エラー:', err);
+        showAlert('送信に失敗しました。URLや通信環境をご確認ください。');
+      } finally {
+        submitBtn.disabled = false;
+        submitBtn.textContent = '送信する';
+      }
+    });
   </script>
-
 </body>
 </html>
