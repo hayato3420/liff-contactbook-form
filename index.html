@@ -48,8 +48,9 @@
     </div>
   </div>
 
-  <script>
+ <script>
     // ====== あなたのGASのURLに置き換える ======
+    // このURLが正しいことを再度確認してください
     const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwbqUSYZ35IXlF8zcIW9P3s9TleI6F1bRtIZ5FWrnW7qq8dDkWug5ljiR8y06eGwfyN/exec";
     // =========================================
 
@@ -58,17 +59,20 @@
     const okBox = document.getElementById('ok');
     const submitBtn = document.getElementById('submitBtn');
 
+    // エラーメッセージ表示
     function showAlert(msg){
       alertBox.textContent = msg;
       alertBox.style.display = msg ? 'block' : 'none';
       okBox.style.display = 'none';
     }
+    // 成功メッセージ表示
     function showOk(msg){
       okBox.textContent = msg;
       okBox.style.display = 'block';
       alertBox.style.display = 'none';
     }
 
+    // フォーム送信時の処理
     form.addEventListener('submit', async (e)=>{
       e.preventDefault();
       showAlert('');
@@ -81,7 +85,7 @@
       const condition = document.getElementById('conditionInput').value;
       const content = document.getElementById('contentInput').value;
 
-      // 必須入力チェック
+      // 必須入力チェック
       if (!name || !temp || !condition || !content) {
           showAlert("すべての項目を入力してください。");
           submitBtn.disabled = false;
@@ -99,13 +103,16 @@
 
       // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
       try {
+        // GASからの応答を待つ
         const res = await fetch(GAS_WEB_APP_URL, {
           method: 'POST',
-          mode: 'no-cors', 
           headers: { 'Content-Type': 'application/json' },
+          // mode: 'no-cors' は削除しました。よりモダンな通信方法を使用します。
           body: JSON.stringify(payload)
         });
         
+        // GASがJSONで応答を返さない場合のエラーを避けるため、ここではJSON応答の処理を簡略化します。
+        // データが送れていれば、成功とみなしメッセージを表示してフォームをクリアします。
         showOk("送信しました。ご入力ありがとうございます。");
         document.getElementById('reportForm').reset();
         
