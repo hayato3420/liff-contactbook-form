@@ -20,7 +20,14 @@
             <form id="reportForm">
                 <div class="row">
                     <label for="nameInput">お子さまの名前</label>
-                    <input type="text" id="nameInput" required placeholder="例）たろう" />
+                    <select id="conditionInput" required>
+                        <option value="">選択してください</option>
+                        <option>元気</option>
+                        <option>少しだるい</option>
+                        <option>咳・鼻水あり</option>
+                        <option>発熱あり</option>
+                        <option>その他</option>
+                    </select>
                 </div>
 
                 <div class="row">
