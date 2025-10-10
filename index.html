@@ -7,7 +7,30 @@
     
     <link rel="stylesheet" href="style.css">
     
-    </head>
+    <script src="https://static.line-scdn.net/liff/sdk/2.2.0/liff.js"></script>
+    
+    <script>
+        // LIFF初期化とID取得
+        async function initializeLiff() {
+            try {
+                // ★★★ ここをあなたのLIFF IDに置き換えてください！ ★★★
+                await liff.init({ liffId: 'YOUR_LIFF_ID' }); 
+                
+                if (liff.isLoggedIn()) {
+                    const profile = await liff.getProfile();
+                    // 取得したユーザーIDを隠しフィールドにセット
+                    document.getElementById('userIdInput').value = profile.userId;
+                } else {
+                    // ログインしていない場合はログインを促す
+                    liff.login();
+                }
+            } catch (err) {
+                console.error('LIFF初期化エラー:', err);
+            }
+        }
+        initializeLiff();
+    </script>
+</head>
 <body>
     <div class="wrap">
         <div class="card">
@@ -19,15 +42,8 @@
 
             <form id="reportForm">
                 <div class="row">
-                    <label for="nameInput">お子さまの名前f</label>
-                    <select id="nameInput" required>
-                        <option value="">選択してください</option>
-                        <option>元気</option>
-                        <option>少しだるい</option>
-                        <option>咳・鼻水あり</option>
-                        <option>発熱あり</option>
-                        <option>その他</option>
-                    </select>
+                    <label for="nameInput">お子さまの名前</label>
+                    <input type="text" id="nameInput" required placeholder="例）たろう" />
                 </div>
 
                 <div class="row">
@@ -52,25 +68,22 @@
                     <textarea id="contentInput" required placeholder="例）薬を持たせました。お迎えは17:30予定です。"></textarea>
                 </div>
                 
+                <input type="hidden" id="userIdInput" name="userId" value="" />
+                
                 <button id="submitBtn" type="submit">送信する</button>
             </form>
-            
-            <button type="button" class="secondary-btn" id="historyBtn">
-                自分の報告履歴を見る
-            </button>
         </div>
     </div>
 
     <script>
-        // ★★★ あなたのGASのURLに置き換え ★★★
-        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyhefCTuBmNihNeeZsd4gN4IW8EGOaZ6hlMCsIOx66RoGQ5nDMiyfJCKmUQV18iwl4ffw/exec";
+        // ★★★ ここをあなたのGASのURLに置き換えてください！ ★★★
+        const GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyN0XHhbAAZ9V5uhpwNWi5_VJDWQOAtbMvhdHV_-sntpYy7YozU0L6bQpwizwiNu4pXvg/exec";
         // =========================================
 
         const form = document.getElementById('reportForm');
         const alertBox = document.getElementById('alert');
         const okBox = document.getElementById('ok');
         const submitBtn = document.getElementById('submitBtn');
-        const historyBtn = document.getElementById('historyBtn');
 
         function showAlert(msg){ 
             alertBox.textContent = msg;
@@ -83,42 +96,55 @@
             alertBox.style.display = 'none';
         }
 
-        // フォーム送信処理
         form.addEventListener('submit', async (e)=>{
             e.preventDefault();
             showAlert('');
             submitBtn.disabled = true;
             submitBtn.textContent = '送信中…';
 
+            // 1. 入力値の取得
             const name = document.getElementById('nameInput').value;
             const temp = document.getElementById('tempInput').value;
             const condition = document.getElementById('conditionInput').value;
             const content = document.getElementById('contentInput').value;
-            
-            // 必須入力チェック
+            const userId = document.getElementById('userIdInput').value; 
+
+            // ★★★ 必須入力チェック（分離版） ★★★
+            // A. フォームの入力項目チェック
             if (!name || !temp || !condition || !content) {
-                showAlert("すべての項目を選択・入力してください。");
+                showAlert("すべての必須項目を入力してください。");
                 submitBtn.disabled = false;
                 submitBtn.textContent = '送信する';
                 return;
             }
-            
-            // userIdを含まないpayload
-            const payload = { name, temp, condition, content };
 
+            // B. LINE IDの取得チェック
+            if (!userId) {
+                showAlert("LINE IDの取得に失敗しました。LINE Developersの設定（Scope）を確認し、再度お試しください。");
+                submitBtn.disabled = false;
+                submitBtn.textContent = '送信する';
+                return;
+            }
+            // ★★★ チェックここまで ★★★
+            
+
+            // 2. 送信するデータをJSON形式で準備
+            const payload = {
+                name: name,
+                temp: temp,
+                condition: condition,
+                content: content,
+                userId: userId // ユーザーIDを含めてGASに送信
+            };
+
+            // 3. GASのdoPost関数にデータを送信（fetch APIを使用）
             try {
-                // GASのdoPost関数にデータを送信
                 const res = await fetch(GAS_WEB_APP_URL, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
                 
-                const result = await res.json();
-                if (result.result === 'error') {
-                     throw new Error('サーバー処理エラー: ' + result.message);
-                }
-
                 showOk("送信しました。ご入力ありがとうございます。");
                 document.getElementById('reportForm').reset();
                 
@@ -129,11 +155,6 @@
                 submitBtn.disabled = false;
                 submitBtn.textContent = '送信する';
             }
-        });
-        
-        // 履歴ボタン処理 (index.htmlでは動作しません)
-        historyBtn.addEventListener('click', () => {
-            showAlert("LIFFによる認証機能がないため、履歴を表示できません。");
         });
     </script>
 </body>
